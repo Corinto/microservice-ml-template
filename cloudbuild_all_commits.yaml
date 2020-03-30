@@ -1,0 +1,24 @@
+#This step builds the image
+steps:
+- name: gcr.io/cloud-builders/docker
+  id: Build
+  args: [
+    build,
+    -f,
+    Dockerfile,
+    -t,
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}',
+    '.'
+  ] 
+
+#This step runs general tests at runtime
+- name: gcr.io/cloud-builders/docker
+  id: Unittests
+  args: [
+    run,
+    '--entrypoint',
+    'pytest',
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}',
+    '-v',
+    '/app/src/tests/general_tests.py'
+  ] 

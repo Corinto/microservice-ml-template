@@ -1,0 +1,44 @@
+steps:
+- name: gcr.io/cloud-builders/docker  # build docker image
+  id: Build
+  args: [
+    build,
+    -f,
+    Dockerfile,
+    -t,
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}',
+    -t,
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:latest',
+    '.'
+  ] 
+
+- name: gcr.io/cloud-builders/docker  # run general code level tests
+  id: Unittests
+  args: [
+    run,
+    '--entrypoint',
+    'pytest',
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}',
+    '-v',
+    '/app/src/tests/general_tests.py'
+  ] 
+
+- name: gcr.io/cloud-builders/docker  # push the image to GCR 
+  id: Push
+  args: [
+    push,
+    'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}',
+    ]
+
+# Deploy latest predict image from Container Registry to Cloud Run
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: Deploy
+  args: [
+    'beta', 'run', 'deploy', '${_SERVICE_NAME}', 
+    '--image', 'eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}', 
+    '--region', 'europe-west1', 
+    '--platform', 'managed', 
+  ]
+images:
+  - eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:${SHORT_SHA}
+  - eu.gcr.io/${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}:latest
