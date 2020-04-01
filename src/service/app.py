@@ -8,7 +8,7 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "A small app to trigger the ad sales forecast service."}
+    return {"message": "A small app to create an ml service."}
 
 app = FastAPI()
 
